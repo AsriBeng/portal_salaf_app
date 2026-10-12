@@ -1,0 +1,4 @@
+storePassword=ISI_PASSWORD_KEYSTORE
+keyPassword=ISI_PASSWORD_KEY
+keyAlias=portalsalaf
+storeFile=C:/Users/NAMA/portal-salaf-upload.jks
