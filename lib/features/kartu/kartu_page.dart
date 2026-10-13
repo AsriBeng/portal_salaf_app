@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
@@ -23,30 +24,65 @@ class KartuPage extends ConsumerStatefulWidget {
   ConsumerState<KartuPage> createState() => _KartuPageState();
 }
 
-class _KartuPageState extends ConsumerState<KartuPage> {
-  bool _membuatPdf = false;
+enum _AksiPdf { unduh, unduhGambar, bagikan, cetak }
 
-  Future<void> _pdf(KartuSantri kartu, {required bool cetak}) async {
-    setState(() => _membuatPdf = true);
+class _KartuPageState extends ConsumerState<KartuPage> {
+  /// Aksi yang sedang diproses (untuk indikator loading di tombolnya).
+  _AksiPdf? _proses;
+
+  Future<void> _pdf(KartuSantri kartu, _AksiPdf aksi) async {
+    setState(() => _proses = aksi);
     try {
       final api = ref.read(apiClientProvider);
       final foto = kartu.fotoUrl == null ? null : await api.getBytes(kartu.fotoUrl!);
       final bytes = await buatPdfKartu(kartu, foto: foto);
       final nama = 'kartu-santri-${kartu.nis}.pdf';
 
-      if (cetak) {
-        await Printing.layoutPdf(onLayout: (_) async => bytes, name: nama);
-      } else {
-        await Printing.sharePdf(bytes: bytes, filename: nama);
+      switch (aksi) {
+        case _AksiPdf.unduh:
+          // Android/iOS: jendela "Simpan" bawaan HP (biasanya langsung ke folder Download).
+          // Web: file langsung terunduh.
+          final lokasi = await FilePicker.saveFile(
+            fileName: nama,
+            bytes: bytes,
+            mimeType: 'application/pdf',
+            type: FileType.custom,
+            allowedExtensions: ['pdf'],
+            dialogTitle: 'Simpan kartu santri',
+          );
+          if (lokasi != null && mounted) showPesan(context, 'Kartu tersimpan: $nama');
+        case _AksiPdf.unduhGambar:
+          // PDF diubah menjadi gambar 300 dpi (±1011 × 638 piksel), tampilannya sama persis dengan PDF
+          final halaman = await Printing.raster(bytes, pages: [0], dpi: 300).first;
+          final png = await halaman.toPng();
+          final namaPng = 'kartu-santri-${kartu.nis}.png';
+          final lokasi = await FilePicker.saveFile(
+            fileName: namaPng,
+            bytes: png,
+            mimeType: 'image/png',
+            type: FileType.custom,
+            allowedExtensions: ['png'],
+            dialogTitle: 'Simpan gambar kartu santri',
+          );
+          if (lokasi != null && mounted) showPesan(context, 'Gambar kartu tersimpan: $namaPng');
+        case _AksiPdf.bagikan:
+          await Printing.sharePdf(bytes: bytes, filename: nama);
+        case _AksiPdf.cetak:
+          await Printing.layoutPdf(onLayout: (_) async => bytes, name: nama);
       }
     } on ApiException catch (e) {
       if (mounted) showPesan(context, e.message, error: true);
     } catch (e) {
       if (mounted) showPesan(context, 'Gagal membuat PDF: $e', error: true);
     } finally {
-      if (mounted) setState(() => _membuatPdf = false);
+      if (mounted) setState(() => _proses = null);
     }
   }
+
+  /// Ikon tombol, atau putaran loading jika aksi tersebut sedang diproses.
+  Widget _ikon(_AksiPdf aksi, IconData ikon, Color warna) => _proses == aksi
+      ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: warna))
+      : Icon(ikon);
 
   Future<void> _qrBaru(KartuSantri kartu) async {
     final ok = await konfirmasi(
@@ -90,18 +126,44 @@ class _KartuPageState extends ConsumerState<KartuPage> {
               const SizedBox(height: 20),
               _StatusKartu(aktif: k.aktif),
               const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: _membuatPdf ? null : () => _pdf(k, cetak: false),
-                icon: _membuatPdf
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-                    : const Icon(Icons.download_rounded),
-                label: const Text('Unduh PDF'),
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _proses != null ? null : () => _pdf(k, _AksiPdf.unduh),
+                      icon: _ikon(_AksiPdf.unduh, Icons.picture_as_pdf_outlined, Colors.white),
+                      label: const Text('Unduh PDF'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _proses != null ? null : () => _pdf(k, _AksiPdf.unduhGambar),
+                      icon: _ikon(_AksiPdf.unduhGambar, Icons.image_outlined, Colors.white),
+                      label: const Text('Unduh Gambar'),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: _membuatPdf ? null : () => _pdf(k, cetak: true),
-                icon: const Icon(Icons.print_outlined),
-                label: const Text('Cetak kartu'),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _proses != null ? null : () => _pdf(k, _AksiPdf.bagikan),
+                      icon: _ikon(_AksiPdf.bagikan, Icons.share_outlined, AppColors.hijau),
+                      label: const Text('Bagikan'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _proses != null ? null : () => _pdf(k, _AksiPdf.cetak),
+                      icon: _ikon(_AksiPdf.cetak, Icons.print_outlined, AppColors.hijau),
+                      label: const Text('Cetak'),
+                    ),
+                  ),
+                ],
               ),
               if (user.bisaKelolaSantri) ...[
                 const SizedBox(height: 12),
