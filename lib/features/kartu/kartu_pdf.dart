@@ -103,7 +103,7 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
           ),
           // Logo samar di belakang data
           pw.Positioned(
-            right: 96 * s,
+            right: 78 * s,
             top: tinggiKepala + 24 * s,
             child: pw.Opacity(opacity: 0.07, child: pw.Image(logo, width: 170 * s, height: 170 * s)),
           ),
@@ -158,8 +158,8 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
                       pw.Container(
-                        width: 86 * s,
-                        height: 114 * s,
+                        width: 110 * s,
+                        height: 146 * s,
                         padding: const pw.EdgeInsets.all(3 * s),
                         decoration: pw.BoxDecoration(
                           color: PdfColors.white,
@@ -172,7 +172,7 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
                                 alignment: pw.Alignment.center,
                                 child: pw.Text(
                                   kartu.namaLengkap.isEmpty ? '?' : kartu.namaLengkap[0].toUpperCase(),
-                                  style: pw.TextStyle(fontSize: 34 * s, color: hijau, fontWeight: pw.FontWeight.bold),
+                                  style: pw.TextStyle(fontSize: 42 * s, color: hijau, fontWeight: pw.FontWeight.bold),
                                 ),
                               )
                             : pw.ClipRRect(
@@ -214,7 +214,7 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
                         mainAxisSize: pw.MainAxisSize.min,
                         children: [
                           pw.Container(
-                            padding: const pw.EdgeInsets.all(5 * s),
+                            padding: const pw.EdgeInsets.all(4 * s),
                             decoration: pw.BoxDecoration(
                               color: PdfColors.white,
                               borderRadius: pw.BorderRadius.circular(10 * s),
@@ -223,8 +223,8 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
                             child: pw.BarcodeWidget(
                               barcode: pw.Barcode.qrCode(),
                               data: kartu.qrUrl,
-                              width: 82 * s,
-                              height: 82 * s,
+                              width: 62 * s,
+                              height: 62 * s,
                               color: hijauTua,
                             ),
                           ),

@@ -50,7 +50,7 @@ class KartuSantriView extends StatelessWidget {
                 ),
               ),
               Positioned(
-                right: 96,
+                right: 78,
                 top: tinggiKepala + 24,
                 child: Opacity(
                   opacity: 0.07,
@@ -193,8 +193,8 @@ class _Badan extends StatelessWidget {
         children: [
           // Foto 3x4 dengan bingkai putih dan garis emas
           Container(
-            width: 86,
-            height: 114,
+            width: 110,
+            height: 146,
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -208,7 +208,7 @@ class _Badan extends StatelessWidget {
                   ? Container(
                       color: AppColors.hijauMuda,
                       alignment: Alignment.center,
-                      child: Text(inisial, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: AppColors.hijau)),
+                      child: Text(inisial, style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w800, color: AppColors.hijau)),
                     )
                   : Image.network(kartu.fotoUrl!, headers: headers, fit: BoxFit.cover),
             ),
@@ -246,7 +246,7 @@ class _Badan extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(5),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -255,7 +255,7 @@ class _Badan extends StatelessWidget {
                 ),
                 child: QrImageView(
                   data: kartu.qrUrl,
-                  size: 82,
+                  size: 62,
                   padding: EdgeInsets.zero,
                   eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: AppColors.hijauTua),
                   dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: AppColors.hijauTua),
