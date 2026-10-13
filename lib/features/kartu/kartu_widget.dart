@@ -70,7 +70,6 @@ class KartuSantriView extends StatelessWidget {
                   ),
                 ],
               ),
-              if (!kartu.aktif) const _CapTidakBerlaku(),
             ],
           ),
         ),
@@ -308,34 +307,6 @@ class _Baris extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _CapTidakBerlaku extends StatelessWidget {
-  const _CapTidakBerlaku();
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: Container(
-        color: Colors.white.withValues(alpha: 0.55),
-        alignment: Alignment.center,
-        child: Transform.rotate(
-          angle: -0.25,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.merah, width: 3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              'TIDAK BERLAKU',
-              style: TextStyle(color: AppColors.merah, fontSize: 28, fontWeight: FontWeight.w900, letterSpacing: 2),
-            ),
-          ),
-        ),
       ),
     );
   }

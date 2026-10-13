@@ -70,14 +70,18 @@ void main() {
     expect(h.total, 45);
   });
 
-  testWidgets('Kartu santri menampilkan nama, NIS, dan tanda tidak berlaku', (tester) async {
+  testWidgets('Kartu santri tampil normal untuk semua status (tanpa stempel)', (tester) async {
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: KartuSantriView(kartu: contohKartu()))));
     expect(find.text('Ahmad Fauzi'), findsOneWidget);
     expect(find.text('20260001'), findsOneWidget);
     expect(find.text('TIDAK BERLAKU'), findsNothing);
 
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: KartuSantriView(kartu: contohKartu(status: 'lulus')))));
-    expect(find.text('TIDAK BERLAKU'), findsOneWidget);
+    // Santri lulus / keluar: kartu tetap tampil normal tanpa stempel
+    for (final status in ['lulus', 'keluar']) {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: KartuSantriView(kartu: contohKartu(status: status)))));
+      expect(find.text('Ahmad Fauzi'), findsOneWidget);
+      expect(find.text('TIDAK BERLAKU'), findsNothing);
+    }
   });
 
   test('PDF kartu berukuran KTP berhasil dibuat', () async {

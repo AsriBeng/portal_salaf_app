@@ -18,7 +18,6 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
   const emas = PdfColor.fromInt(0xFFF2C300);
   const teks = PdfColor.fromInt(0xFF14231B);
   const teks2 = PdfColor.fromInt(0xFF5B6B62);
-  const merah = PdfColor.fromInt(0xFFC62828);
   // Warna pola: hijau yang sudah dicampur putih (setara transparansi 7%)
   const pola = PdfColor.fromInt(0xFFE3EFE8);
 
@@ -244,17 +243,6 @@ Future<Uint8List> buatPdfKartu(KartuSantri kartu, {Uint8List? foto}) async {
               ),
             ],
           ),
-          if (!kartu.aktif)
-            pw.Center(
-              child: pw.Transform.rotate(
-                angle: 0.25,
-                child: pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 18 * s, vertical: 8 * s),
-                  decoration: pw.BoxDecoration(border: pw.Border.all(color: merah, width: 3 * s)),
-                  child: pw.Text('TIDAK BERLAKU', style: pw.TextStyle(color: merah, fontSize: 28 * s, fontWeight: pw.FontWeight.bold)),
-                ),
-              ),
-            ),
         ],
       ),
     ),

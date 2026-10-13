@@ -14,6 +14,7 @@ class KartuSantri {
     required this.berlaku,
     required this.qrUrl,
     this.fotoUrl,
+    this.tanggalKeluar,
   });
 
   final String pondokNama;
@@ -30,7 +31,12 @@ class KartuSantri {
   final String qrUrl;
   final String? fotoUrl;
 
+  /// Tanggal lulus / keluar (yyyy-mm-dd), null jika masih aktif
+  final String? tanggalKeluar;
+
   bool get aktif => status == 'aktif';
+  bool get lulus => status == 'lulus';
+  bool get keluar => status == 'keluar';
 
   factory KartuSantri.fromJson(Map<String, dynamic> json) {
     final pondok = json['pondok'] as Map<String, dynamic>;
@@ -49,6 +55,7 @@ class KartuSantri {
       status: json['status'] as String,
       berlaku: json['berlaku'] as String? ?? '',
       qrUrl: json['qr_url'] as String,
+      tanggalKeluar: json['tanggal_keluar'] as String?,
     );
   }
 }

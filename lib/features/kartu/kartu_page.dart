@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
 import '../../core/api_client.dart';
+import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../models/akses.dart';
 import '../../models/kartu.dart';
@@ -124,7 +125,7 @@ class _KartuPageState extends ConsumerState<KartuPage> {
             children: [
               KartuSantriView(kartu: k, headers: headers),
               const SizedBox(height: 20),
-              _StatusKartu(aktif: k.aktif),
+              _StatusKartu(kartu: k),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -189,34 +190,60 @@ class _KartuPageState extends ConsumerState<KartuPage> {
   }
 }
 
+/// Keterangan status di bawah kartu: aktif, lulus, atau keluar.
+/// Kartu tetap asli untuk ketiga status; yang berbeda hanya keterangannya.
 class _StatusKartu extends StatelessWidget {
-  const _StatusKartu({required this.aktif});
+  const _StatusKartu({required this.kartu});
 
-  final bool aktif;
+  final KartuSantri kartu;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final sejak = kartu.tanggalKeluar == null ? '' : ' pada ${tanggal(kartu.tanggalKeluar)}';
+
+    final (ikon, warna, latar, judul, isi) = switch (kartu.status) {
+      'lulus' => (
+          Icons.school_rounded,
+          AppColors.biru,
+          AppColors.biruMuda,
+          'Santri telah lulus',
+          'Pemilik kartu adalah alumni yang telah lulus dari pondok$sejak. '
+              'Saat QR dipindai, kartu tetap terverifikasi asli dengan keterangan santri telah lulus.',
+        ),
+      'keluar' => (
+          Icons.logout_rounded,
+          AppColors.oranye,
+          AppColors.oranyeMuda,
+          'Santri sudah keluar',
+          'Pemilik kartu sudah keluar dari pondok$sejak dan bukan lagi santri aktif. '
+              'Saat QR dipindai, kartu tetap terverifikasi asli dengan keterangan santri sudah keluar.',
+        ),
+      _ => (
+          Icons.verified_rounded,
+          AppColors.hijau,
+          AppColors.hijauMuda,
+          'Santri aktif',
+          'Kartu aktif. Siapa pun dapat memindai kode QR untuk memastikan keaslian kartu ini.',
+        ),
+    };
+
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: aktif ? AppColors.hijauMuda : AppColors.oranyeMuda,
-        borderRadius: BorderRadius.circular(14),
-      ),
+      decoration: BoxDecoration(color: latar, borderRadius: BorderRadius.circular(14)),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(aktif ? Icons.verified_rounded : Icons.error_outline_rounded, color: aktif ? AppColors.hijau : AppColors.oranye),
+          Icon(ikon, color: warna),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              aktif
-                  ? 'Kartu aktif. Siapa pun dapat memindai kode QR untuk memastikan keaslian kartu ini.'
-                  : 'Kartu tidak berlaku karena santri sudah tidak aktif di pondok.',
-              style: text.bodySmall?.copyWith(
-                color: aktif ? AppColors.hijauTua : AppColors.oranye,
-                fontWeight: FontWeight.w600,
-                height: 1.4,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(judul, style: text.titleSmall?.copyWith(color: warna, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(isi, style: text.bodySmall?.copyWith(color: AppColors.teks2, height: 1.4)),
+              ],
             ),
           ),
         ],
