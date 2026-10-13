@@ -9,6 +9,7 @@ class Pengumuman {
     this.pembuatId,
     this.pembuatNama,
     this.pembuatPeran,
+    this.pembuatFotoUrl,
   });
 
   final int id;
@@ -22,6 +23,7 @@ class Pengumuman {
   final int? pembuatId;
   final String? pembuatNama;
   final String? pembuatPeran;
+  final String? pembuatFotoUrl;
 
   String get targetLabel => switch (target) {
         'putra' => 'Santri putra',
@@ -41,6 +43,7 @@ class Pengumuman {
       pembuatId: pembuat?['id'] as int?,
       pembuatNama: pembuat?['name'] as String?,
       pembuatPeran: pembuat?['role'] as String?,
+      pembuatFotoUrl: pembuat?['foto_url'] as String?,
     );
   }
 }

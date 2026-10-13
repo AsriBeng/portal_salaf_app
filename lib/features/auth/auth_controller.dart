@@ -56,6 +56,17 @@ class AuthController extends AsyncNotifier<User?> {
   /// Daftarkan perangkat untuk push notification (tidak menunggu, tidak menggagalkan login).
   void _mulaiPush() => unawaited(Future(() => ref.read(pushServiceProvider).mulai()));
 
+  /// Ganti foto profil pengurus yang sedang login.
+  Future<void> gantiFoto(UploadFile foto) async {
+    final res = await _api.upload('/me/foto', {'foto': foto});
+    state = AsyncData(User.fromJson(res['data'] as Map<String, dynamic>));
+  }
+
+  Future<void> hapusFoto() async {
+    final res = await _api.delete('/me/foto');
+    state = AsyncData(User.fromJson(res['data'] as Map<String, dynamic>));
+  }
+
   /// Muat ulang profil (misal setelah data diubah).
   Future<void> refreshUser() async {
     final res = await _api.get('/me');

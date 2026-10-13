@@ -56,6 +56,7 @@ class User {
     this.gender,
     this.genderLabel,
     this.phone,
+    this.fotoUrl,
     this.santri,
   });
 
@@ -68,10 +69,16 @@ class User {
   final String? gender;
   final String? genderLabel;
   final String? phone;
+
+  /// Foto profil pengurus (null untuk santri; santri memakai foto di data santri)
+  final String? fotoUrl;
   final SantriRingkas? santri;
 
   bool get isSantri => role == Role.santri;
   bool get isAdmin => role == Role.admin;
+
+  /// Foto yang ditampilkan: santri memakai foto kartunya, pengurus memakai foto profilnya.
+  String? get fotoProfil => santri?.fotoUrl ?? fotoUrl;
 
   /// "Sekretaris Putra", "Admin / Pengasuh", "Santri Putri"
   String get jabatan => gender == null || isAdmin ? role.label : '${role.label} $genderLabel';
@@ -91,6 +98,7 @@ class User {
         gender: json['gender'] as String?,
         genderLabel: json['gender_label'] as String?,
         phone: json['phone'] as String?,
+        fotoUrl: json['foto_url'] as String?,
         santri: json['santri'] is Map<String, dynamic> ? SantriRingkas.fromJson(json['santri'] as Map<String, dynamic>) : null,
       );
 }

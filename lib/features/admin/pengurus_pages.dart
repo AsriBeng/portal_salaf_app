@@ -7,6 +7,7 @@ import '../../core/api_client.dart';
 import '../../core/theme.dart';
 import '../../models/user.dart';
 import '../../shared/paged_list.dart';
+import '../../shared/pilih_foto.dart';
 import '../../shared/ui.dart';
 import '../../shared/widgets.dart';
 import '../auth/auth_controller.dart';
@@ -57,6 +58,11 @@ class _PengurusPageState extends ConsumerState<PengurusPage> {
             onTap: () => Navigator.pop(context, 'ubah'),
           ),
           ListTile(
+            leading: const Icon(Icons.add_a_photo_outlined),
+            title: const Text('Ganti foto profil'),
+            onTap: () => Navigator.pop(context, 'foto'),
+          ),
+          ListTile(
             leading: const Icon(Icons.lock_reset_rounded),
             title: const Text('Reset password'),
             onTap: () => Navigator.pop(context, 'reset'),
@@ -80,6 +86,19 @@ class _PengurusPageState extends ConsumerState<PengurusPage> {
         case 'ubah':
           await _form(p);
           return;
+        case 'foto':
+          final pilihan = await pilihFotoProfil(context, adaFoto: p.user.fotoUrl != null);
+          if (pilihan == null) return;
+          switch (pilihan) {
+            case FotoBaru(:final file):
+              await repo.gantiFoto(p.user.id, file);
+            case HapusFoto():
+              await repo.hapusFoto(p.user.id);
+          }
+          if (mounted) showPesan(context, 'Foto ${p.user.name} diperbarui.');
+          // Jika admin mengganti fotonya sendiri, perbarui juga di beranda/profil
+          if (p.user.id == saya?.id) await ref.read(authControllerProvider.notifier).refreshUser();
+          setState(() => _versi++);
         case 'reset':
           final pass = await mintaTeks(
             context,
@@ -182,7 +201,11 @@ class _PengurusPageState extends ConsumerState<PengurusPage> {
             child: PagedList<Pengurus>(
               reloadKey: '$_kata|$_role|$_versi',
               muat: (page) => repo.pengurus(page: page, role: _role, search: _kata),
-              itemBuilder: (_, p) => _PengurusTile(pengurus: p, onTap: () => _aksi(p)),
+              itemBuilder: (_, p) => _PengurusTile(
+                pengurus: p,
+                headers: ref.read(apiClientProvider).authHeaders,
+                onTap: () => _aksi(p),
+              ),
               kosong: const EmptyView(icon: Icons.badge_outlined, judul: 'Belum ada pengurus'),
               separator: 8,
             ),
@@ -194,9 +217,10 @@ class _PengurusPageState extends ConsumerState<PengurusPage> {
 }
 
 class _PengurusTile extends StatelessWidget {
-  const _PengurusTile({required this.pengurus, required this.onTap});
+  const _PengurusTile({required this.pengurus, required this.headers, required this.onTap});
 
   final Pengurus pengurus;
+  final Map<String, String> headers;
   final VoidCallback onTap;
 
   @override
@@ -214,7 +238,7 @@ class _PengurusTile extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                UserAvatar(inisial: u.inisial, size: 44),
+                UserAvatar(inisial: u.inisial, fotoUrl: u.fotoUrl, headers: headers, size: 44),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

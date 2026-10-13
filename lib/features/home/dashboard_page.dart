@@ -207,7 +207,7 @@ class _Header extends ConsumerWidget {
             children: [
               UserAvatar(
                 inisial: user.inisial,
-                fotoUrl: santri?['foto_url'] as String? ?? user.santri?.fotoUrl,
+                fotoUrl: santri?['foto_url'] as String? ?? user.fotoProfil,
                 headers: ref.read(apiClientProvider).authHeaders,
                 size: 52,
               ),

@@ -33,6 +33,49 @@ class TargetPill extends StatelessWidget {
       };
 }
 
+/// Foto, nama, dan jabatan pembuat pengumuman.
+class PembuatPengumuman extends ConsumerWidget {
+  const PembuatPengumuman({super.key, required this.pengumuman, this.ukuran = 28});
+
+  final Pengumuman pengumuman;
+  final double ukuran;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final nama = pengumuman.pembuatNama ?? '';
+    final inisial = nama
+        .split(RegExp(r'\s+'))
+        .where((k) => RegExp(r'^[A-Za-z]').hasMatch(k))
+        .take(2)
+        .map((k) => k[0].toUpperCase())
+        .join();
+
+    return Row(
+      children: [
+        UserAvatar(
+          inisial: inisial.isEmpty ? '?' : inisial,
+          fotoUrl: pengumuman.pembuatFotoUrl,
+          headers: ref.read(apiClientProvider).authHeaders,
+          size: ukuran,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: nama, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.teks)),
+              if (pengumuman.pembuatPeran != null) TextSpan(text: ' · ${pengumuman.pembuatPeran}'),
+            ]),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: text.bodySmall?.copyWith(color: AppColors.teks2),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Daftar pengumuman
 // ---------------------------------------------------------------------------
@@ -146,8 +189,8 @@ class PengumumanCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(p.isi, maxLines: 3, overflow: TextOverflow.ellipsis, style: text.bodyMedium?.copyWith(color: AppColors.teks2, height: 1.45)),
               if (p.pembuatNama != null) ...[
-                const SizedBox(height: 10),
-                Text('${p.pembuatNama} · ${p.pembuatPeran ?? ''}', style: text.labelSmall?.copyWith(color: AppColors.teks2)),
+                const SizedBox(height: 12),
+                PembuatPengumuman(pengumuman: p, ukuran: 26),
               ],
             ],
           ),
@@ -229,12 +272,8 @@ class PengumumanDetailPage extends ConsumerWidget {
             const SizedBox(height: 14),
             Text(p.judul, style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800, height: 1.25)),
             if (p.pembuatNama != null) ...[
-              const SizedBox(height: 8),
-              Row(children: [
-                const Icon(Icons.person_outline_rounded, size: 16, color: AppColors.teks2),
-                const SizedBox(width: 6),
-                Text('${p.pembuatNama} · ${p.pembuatPeran ?? ''}', style: text.bodySmall?.copyWith(color: AppColors.teks2)),
-              ]),
+              const SizedBox(height: 12),
+              PembuatPengumuman(pengumuman: p, ukuran: 36),
             ],
             const Divider(height: 32),
             SelectableText(p.isi, style: text.bodyLarge?.copyWith(height: 1.6)),

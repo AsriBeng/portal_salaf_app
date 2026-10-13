@@ -59,6 +59,10 @@ class AdminRepository {
 
   Future<void> nonaktifkan(int id) => _api.delete('/users/$id');
 
+  Future<void> gantiFoto(int id, UploadFile foto) => _api.upload('/users/$id/foto', {'foto': foto});
+
+  Future<void> hapusFoto(int id) => _api.delete('/users/$id/foto');
+
   Future<Map<String, dynamic>> pengaturan() async => (await _api.get('/settings'))['data'] as Map<String, dynamic>;
 
   Future<Map<String, dynamic>> simpanPengaturan(Map<String, Object?> data, {UploadFile? logo}) async {

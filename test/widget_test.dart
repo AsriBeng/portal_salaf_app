@@ -37,6 +37,33 @@ void main() {
     expect(User.fromJson({'id': 2, 'name': 'Admin / Pengasuh', 'username': 'a', 'role': 'admin'}).inisial, 'AP');
   });
 
+  test('Foto profil: pengurus memakai foto akun, santri memakai foto kartunya', () {
+    final pengurus = User.fromJson({
+      'id': 3,
+      'name': 'Ust. Ridwan',
+      'username': 'bendahara_putra',
+      'role': 'bendahara',
+      'foto_url': 'https://api/users/3/foto?v=ab12',
+    });
+    expect(pengurus.fotoProfil, 'https://api/users/3/foto?v=ab12');
+
+    final santri = User.fromJson({
+      'id': 4,
+      'name': 'Ahmad',
+      'username': '2025001',
+      'role': 'santri',
+      'santri': {
+        'id': 1,
+        'nis': '2025001',
+        'nama_lengkap': 'Ahmad',
+        'jenis_kelamin': 'L',
+        'status': 'aktif',
+        'foto_url': 'https://api/santri/1/dokumen/foto_profil?v=cd34',
+      },
+    });
+    expect(santri.fotoProfil, 'https://api/santri/1/dokumen/foto_profil?v=cd34');
+  });
+
   test('ApiException membaca error validasi', () {
     final e = ApiException('Data tidak valid', statusCode: 422, errors: {
       'password': ['Password minimal 6 karakter.'],

@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/api_client.dart';
 import '../../core/config.dart';
 import '../../core/theme.dart';
+import '../../models/user.dart';
+import '../../shared/pilih_foto.dart';
+import '../../shared/ui.dart';
 import '../../shared/widgets.dart';
 import '../auth/auth_controller.dart';
 
@@ -49,12 +52,7 @@ class ProfilePage extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  UserAvatar(
-                    inisial: user.inisial,
-                    fotoUrl: santri?.fotoUrl,
-                    headers: ref.read(apiClientProvider).authHeaders,
-                    size: 84,
-                  ),
+                  _FotoProfil(user: user),
                   const SizedBox(height: 14),
                   Text(
                     user.name,
@@ -151,6 +149,85 @@ class ProfilePage extends ConsumerWidget {
             '${AppConfig.appName} · ${AppConfig.tagline}',
             textAlign: TextAlign.center,
             style: text.labelSmall?.copyWith(color: AppColors.teks2),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Foto profil. Pengurus bisa mengetuknya untuk mengganti; foto santri dikelola sekretaris/admin.
+class _FotoProfil extends ConsumerStatefulWidget {
+  const _FotoProfil({required this.user});
+
+  final User user;
+
+  @override
+  ConsumerState<_FotoProfil> createState() => _FotoProfilState();
+}
+
+class _FotoProfilState extends ConsumerState<_FotoProfil> {
+  bool _proses = false;
+
+  Future<void> _ganti() async {
+    final pilihan = await pilihFotoProfil(context, adaFoto: widget.user.fotoUrl != null);
+    if (pilihan == null || !mounted) return;
+
+    setState(() => _proses = true);
+    final auth = ref.read(authControllerProvider.notifier);
+    try {
+      switch (pilihan) {
+        case FotoBaru(:final file):
+          await auth.gantiFoto(file);
+          if (mounted) showPesan(context, 'Foto profil diperbarui.');
+        case HapusFoto():
+          await auth.hapusFoto();
+          if (mounted) showPesan(context, 'Foto profil dihapus.');
+      }
+    } on ApiException catch (e) {
+      if (mounted) showPesan(context, e.errors.values.firstOrNull?.first ?? e.message, error: true);
+    } finally {
+      if (mounted) setState(() => _proses = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = widget.user;
+    final avatar = UserAvatar(
+      inisial: user.inisial,
+      fotoUrl: user.fotoProfil,
+      headers: ref.read(apiClientProvider).authHeaders,
+      size: 92,
+    );
+
+    if (user.isSantri) return avatar;
+
+    return GestureDetector(
+      onTap: _proses ? null : _ganti,
+      child: Stack(
+        children: [
+          avatar,
+          if (_proses)
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Colors.black38, shape: BoxShape.circle),
+                child: Center(child: SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))),
+              ),
+            ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: AppColors.hijau,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: const Icon(Icons.photo_camera_rounded, size: 15, color: Colors.white),
+            ),
           ),
         ],
       ),
