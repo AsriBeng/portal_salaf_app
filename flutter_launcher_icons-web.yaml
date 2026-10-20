@@ -1,0 +1,11 @@
+# Ikon versi web (favicon, ikon Layar Utama iPhone/Android):
+# dart run flutter_launcher_icons -f flutter_launcher_icons-web.yaml
+flutter_launcher_icons:
+  android: false
+  ios: false
+  image_path: assets/images/logo.png
+  web:
+    generate: true
+    image_path: assets/images/logo.png
+    background_color: "#FFFFFF"
+    theme_color: "#0B6B3A"
