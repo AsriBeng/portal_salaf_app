@@ -14,7 +14,7 @@ extension Akses on User {
   /// Tagihan, verifikasi pembayaran, kas. Ketua hanya bisa melihat.
   bool get bisaKelolaKeuangan => role == Role.admin || role == Role.bendahara;
 
-  bool get bisaBuatPengumuman => role == Role.admin || role == Role.ketua || role == Role.sekretaris;
+  bool get bisaBuatPengumuman => role == Role.admin || role == Role.ketua || role == Role.sekretaris || role == Role.bendahara;
 
   /// Pengumuman hanya bisa diubah / dihapus oleh pembuatnya atau admin.
   bool bisaUbahPengumuman(int? pembuatId) => role == Role.admin || (bisaBuatPengumuman && pembuatId == id);
