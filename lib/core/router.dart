@@ -41,7 +41,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Halaman yang dibuka diingat supaya bisa kembali ke sana setelah sesi siap.
       if (auth.isLoading || auth.hasError) {
         if (lokasi == '/splash') return null;
-        final dari = lokasi == '/' || lokasi == '/login' ? null : state.uri.toString();
+        final dari = state.uri.toString() == '/' || lokasi == '/login' ? null : state.uri.toString();
         return dari == null ? '/splash' : '/splash?dari=${Uri.encodeComponent(dari)}';
       }
 
@@ -54,7 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/splash', builder: (_, _) => const SplashPage()),
       GoRoute(path: '/login', builder: (_, _) => const LoginPage()),
-      GoRoute(path: '/', builder: (_, _) => const HomeShell()),
+      GoRoute(path: '/', builder: (_, s) => HomeShell(tabUrl: int.tryParse(s.uri.queryParameters['tab'] ?? ''))),
       GoRoute(path: '/profil/password', builder: (_, _) => const ChangePasswordPage()),
 
       // Komplek & kamar

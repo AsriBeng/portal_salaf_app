@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../models/user.dart';
 import '../auth/auth_controller.dart';
@@ -23,13 +25,40 @@ class _Tab {
 
 /// Menu bawah, isinya menyesuaikan peran pengguna.
 class HomeShell extends ConsumerStatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key, this.tabUrl});
+
+  /// Versi web: tab dari alamat (/app/?tab=2), supaya tombol kembali browser berpindah antar tab.
+  final int? tabUrl;
 
   @override
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Dibuka langsung / di-refresh dengan ?tab=N
+    final dariUrl = widget.tabUrl;
+    if (kIsWeb && dariUrl != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(tabAktifProvider.notifier).pilih(dariUrl);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(HomeShell old) {
+    super.didUpdateWidget(old);
+    // Alamat berubah karena tombol kembali/maju browser: ikuti tabnya
+    final dariUrl = widget.tabUrl ?? 0;
+    if (kIsWeb && dariUrl != (old.tabUrl ?? 0) && dariUrl != ref.read(tabAktifProvider)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(tabAktifProvider.notifier).pilih(dariUrl);
+      });
+    }
+  }
+
   List<_Tab> _tabs(Role role) {
     const beranda = _Tab('Beranda', Icons.home_outlined, Icons.home_rounded, DashboardPage());
     const profil = _Tab('Profil', Icons.person_outline_rounded, Icons.person_rounded, ProfilePage());
@@ -62,6 +91,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     final tabs = _tabs(user.role);
     final index = ref.watch(tabAktifProvider).clamp(0, tabs.length - 1);
     final tab = ref.read(tabAktifProvider.notifier);
+
+    // Versi web: setiap pindah tab dicatat di riwayat browser (alamat ?tab=N)
+    if (kIsWeb) {
+      ref.listen(tabAktifProvider, (_, baru) {
+        if (baru != (widget.tabUrl ?? 0)) context.go(baru == 0 ? '/' : '/?tab=$baru');
+      });
+    }
 
     // Tombol kembali di HP: pindah ke tab sebelumnya, baru keluar aplikasi dari Beranda
     return PopScope(
