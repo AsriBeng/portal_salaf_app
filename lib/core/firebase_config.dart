@@ -12,27 +12,37 @@ class FirebaseConfig {
 
   static const _apiKeyAndroid = String.fromEnvironment('FIREBASE_API_KEY_ANDROID');
   static const _apiKeyIos = String.fromEnvironment('FIREBASE_API_KEY_IOS');
+  static const _apiKeyWeb = String.fromEnvironment('FIREBASE_API_KEY_WEB');
   static const _appIdAndroid = String.fromEnvironment('FIREBASE_APP_ID_ANDROID');
   static const _appIdIos = String.fromEnvironment('FIREBASE_APP_ID_IOS');
+  static const _appIdWeb = String.fromEnvironment('FIREBASE_APP_ID_WEB');
   static const _senderId = String.fromEnvironment('FIREBASE_SENDER_ID');
   static const _projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
 
-  static bool get _ios => defaultTargetPlatform == TargetPlatform.iOS;
+  /// Kunci Web Push (VAPID) untuk meminta token di browser.
+  static const vapidKey = String.fromEnvironment('FIREBASE_VAPID_KEY');
 
-  /// Push hanya untuk aplikasi Android / iOS yang sudah dikonfigurasi.
+  static bool get _ios => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
+  static String get _apiKey => kIsWeb ? _apiKeyWeb : (_ios ? _apiKeyIos : _apiKeyAndroid);
+  static String get _appId => kIsWeb ? _appIdWeb : (_ios ? _appIdIos : _appIdAndroid);
+
+  /// Push untuk aplikasi Android / iOS / web yang sudah dikonfigurasi.
   static bool get tersedia {
-    if (kIsWeb) return false;
-    if (defaultTargetPlatform != TargetPlatform.android && !_ios) return false;
-    final apiKey = _ios ? _apiKeyIos : _apiKeyAndroid;
-    final appId = _ios ? _appIdIos : _appIdAndroid;
-    return apiKey.isNotEmpty && appId.isNotEmpty && _senderId.isNotEmpty && _projectId.isNotEmpty;
+    if (kIsWeb) {
+      if (vapidKey.isEmpty) return false;
+    } else if (defaultTargetPlatform != TargetPlatform.android && !_ios) {
+      return false;
+    }
+    return _apiKey.isNotEmpty && _appId.isNotEmpty && _senderId.isNotEmpty && _projectId.isNotEmpty;
   }
 
   static FirebaseOptions get options => FirebaseOptions(
-        apiKey: _ios ? _apiKeyIos : _apiKeyAndroid,
-        appId: _ios ? _appIdIos : _appIdAndroid,
+        apiKey: _apiKey,
+        appId: _appId,
         messagingSenderId: _senderId,
         projectId: _projectId,
+        authDomain: kIsWeb ? '$_projectId.firebaseapp.com' : null,
         iosBundleId: _ios ? 'id.assalafiyah.portalsalaf' : null,
       );
 }

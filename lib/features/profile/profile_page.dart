@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/api_client.dart';
 import '../../core/config.dart';
+import '../../core/push_service.dart';
 import '../../core/theme.dart';
 import '../../models/user.dart';
 import '../../shared/pilih_foto.dart';
@@ -79,6 +81,10 @@ class ProfilePage extends ConsumerWidget {
               ],
             ),
           ),
+          if (kIsWeb) ...[
+            const SizedBox(height: 16),
+            const _NotifikasiWeb(),
+          ],
           const SizedBox(height: 16),
           Card(
             clipBehavior: Clip.antiAlias,
@@ -286,6 +292,105 @@ class _MenuTile extends StatelessWidget {
       ),
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
       trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.teks2),
+    );
+  }
+}
+
+/// Pengaturan push notification di browser (hanya versi web).
+class _NotifikasiWeb extends ConsumerStatefulWidget {
+  const _NotifikasiWeb();
+
+  @override
+  ConsumerState<_NotifikasiWeb> createState() => _NotifikasiWebState();
+}
+
+class _NotifikasiWebState extends ConsumerState<_NotifikasiWeb> {
+  StatusPushWeb? _status;
+  bool _proses = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(pushServiceProvider).statusWeb().then((s) {
+      if (mounted) setState(() => _status = s);
+    });
+  }
+
+  Future<void> _aktifkan() async {
+    setState(() => _proses = true);
+    try {
+      final status = await ref.read(pushServiceProvider).aktifkanWeb();
+      if (!mounted) return;
+      setState(() => _status = status);
+      if (status == StatusPushWeb.aktif) showPesan(context, 'Notifikasi browser aktif.');
+    } catch (e) {
+      if (mounted) showPesan(context, 'Gagal mengaktifkan notifikasi: ${e is ApiException ? e.message : e}', error: true);
+    } finally {
+      if (mounted) setState(() => _proses = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _status;
+    if (status == null || status == StatusPushWeb.belumDiatur) return const SizedBox.shrink();
+
+    final iPhone = defaultTargetPlatform == TargetPlatform.iOS;
+    final (IconData ikon, Color warna, String keterangan) = switch (status) {
+      StatusPushWeb.aktif => (
+          Icons.notifications_active_rounded,
+          AppColors.hijau,
+          'Aktif. Pemberitahuan tagihan, pembayaran, dan pengumuman akan muncul di perangkat ini.',
+        ),
+      StatusPushWeb.ditolak => (
+          Icons.notifications_off_rounded,
+          AppColors.merah,
+          'Diblokir. Izinkan notifikasi untuk situs ini di pengaturan browser, lalu buka kembali halaman ini.',
+        ),
+      StatusPushWeb.tidakDidukung when iPhone => (
+          Icons.add_to_home_screen_rounded,
+          AppColors.oranye,
+          'Di iPhone, notifikasi hanya bisa diterima jika Portal Salaf dipasang ke Layar Utama '
+              '(iOS 16.4 ke atas): ketuk tombol Bagikan di Safari, pilih "Tambahkan ke Layar Utama", '
+              'lalu buka Portal Salaf dari ikon tersebut.',
+        ),
+      StatusPushWeb.tidakDidukung => (
+          Icons.notifications_off_rounded,
+          AppColors.teks2,
+          'Browser ini tidak mendukung notifikasi. Gunakan Chrome, Edge, atau Firefox versi terbaru.',
+        ),
+      _ => (
+          Icons.notifications_none_rounded,
+          AppColors.teks2,
+          'Aktifkan supaya pemberitahuan tetap masuk meskipun Portal Salaf sedang tidak dibuka.',
+        ),
+    };
+
+    return SectionCard(
+      title: 'Notifikasi browser',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(ikon, color: warna),
+              const SizedBox(width: 12),
+              Expanded(child: Text(keterangan, style: Theme.of(context).textTheme.bodyMedium)),
+            ],
+          ),
+          if (status == StatusPushWeb.belumAktif) ...[
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              onPressed: _proses ? null : _aktifkan,
+              icon: _proses
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.notifications_active_outlined),
+              label: const Text('Aktifkan Notifikasi'),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

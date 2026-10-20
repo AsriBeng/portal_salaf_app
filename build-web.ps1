@@ -7,7 +7,7 @@ Set-Location $PSScriptRoot
 
 $tujuan = Join-Path $PSScriptRoot '..\portal_salaf\public\app'
 
-flutter build web --release --base-href /app/
+flutter build web --release --base-href /app/ --dart-define-from-file=firebase-config.json
 if ($LASTEXITCODE -ne 0) { throw 'Build web gagal.' }
 
 # /MIR: isi folder tujuan disamakan persis dengan hasil build (file lama ikut terhapus)
