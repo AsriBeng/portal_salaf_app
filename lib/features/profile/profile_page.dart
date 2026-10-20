@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/api_client.dart';
 import '../../core/config.dart';
@@ -34,6 +35,21 @@ class ProfilePage extends ConsumerWidget {
     );
 
     if (yakin == true) await ref.read(authControllerProvider.notifier).logout();
+  }
+
+  /// Versi dibaca dari `version` di pubspec.yaml (contoh 1.0.5+6 → "Versi 1.0.5 (6)").
+  Future<void> _tentang(BuildContext context) async {
+    final info = await PackageInfo.fromPlatform();
+    if (!context.mounted) return;
+
+    final build = info.buildNumber.isEmpty ? '' : ' (${info.buildNumber})';
+    showAboutDialog(
+      context: context,
+      applicationName: AppConfig.appName,
+      applicationVersion: 'Versi ${info.version}$build',
+      applicationIcon: const AppLogo(size: 56),
+      applicationLegalese: AppConfig.tagline,
+    );
   }
 
   @override
@@ -129,13 +145,7 @@ class ProfilePage extends ConsumerWidget {
                 _MenuTile(
                   icon: Icons.info_outline_rounded,
                   label: 'Tentang aplikasi',
-                  onTap: () => showAboutDialog(
-                    context: context,
-                    applicationName: AppConfig.appName,
-                    applicationVersion: 'Versi 1.0.0',
-                    applicationIcon: const AppLogo(size: 56),
-                    applicationLegalese: AppConfig.tagline,
-                  ),
+                  onTap: () => _tentang(context),
                 ),
               ],
             ),
