@@ -61,20 +61,28 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
     final tabs = _tabs(user.role);
     final index = ref.watch(tabAktifProvider).clamp(0, tabs.length - 1);
+    final tab = ref.read(tabAktifProvider.notifier);
 
-    return Scaffold(
-      body: IndexedStack(index: index, children: [for (final t in tabs) t.page]),
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE3EBE6))),
-        ),
-        child: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: ref.read(tabAktifProvider.notifier).pilih,
-          destinations: [
-            for (final t in tabs)
-              NavigationDestination(icon: Icon(t.icon), selectedIcon: Icon(t.activeIcon), label: t.label),
-          ],
+    // Tombol kembali di HP: pindah ke tab sebelumnya, baru keluar aplikasi dari Beranda
+    return PopScope(
+      canPop: !tab.bisaKembali,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) tab.kembali();
+      },
+      child: Scaffold(
+        body: IndexedStack(index: index, children: [for (final t in tabs) t.page]),
+        bottomNavigationBar: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Color(0xFFE3EBE6))),
+          ),
+          child: NavigationBar(
+            selectedIndex: index,
+            onDestinationSelected: tab.pilih,
+            destinations: [
+              for (final t in tabs)
+                NavigationDestination(icon: Icon(t.icon), selectedIcon: Icon(t.activeIcon), label: t.label),
+            ],
+          ),
         ),
       ),
     );
