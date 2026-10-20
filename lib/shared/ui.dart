@@ -285,3 +285,30 @@ Future<T?> bukaSheet<T>(BuildContext context, {required String judul, required W
     ),
   );
 }
+
+/// Membatasi lebar halaman di layar lebar (versi web di laptop) supaya tidak terlalu renggang.
+/// Di HP tampilannya tidak berubah.
+class HalamanTerpusat extends StatelessWidget {
+  const HalamanTerpusat({super.key, required this.child});
+
+  final Widget child;
+
+  /// Lebar layar minimal sebelum halaman dibatasi (sama dengan batas menu samping di beranda).
+  static const lebarMinimal = 900.0;
+  static const lebarMaksimal = 840.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, ukuran) {
+        if (ukuran.maxWidth < lebarMinimal) return child;
+        return ColoredBox(
+          color: AppColors.latar,
+          child: Center(
+            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: lebarMaksimal), child: child),
+          ),
+        );
+      },
+    );
+  }
+}

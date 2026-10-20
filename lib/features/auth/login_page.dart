@@ -169,25 +169,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.emasMuda,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFF5E08A)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.help_outline_rounded, size: 20, color: Color(0xFF6B5500)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Lupa password? Hubungi admin atau sekretaris pondok untuk mereset password Anda.',
-                        style: text.bodySmall?.copyWith(color: const Color(0xFF6B5500), height: 1.45),
+              // Selebar kartu login (440) dikurangi selisih padding sampingnya
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 416),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.emasMuda,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFF5E08A)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.help_outline_rounded, size: 20, color: Color(0xFF6B5500)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Lupa password? Hubungi admin atau sekretaris pondok untuk mereset password Anda.',
+                          style: text.bodySmall?.copyWith(color: const Color(0xFF6B5500), height: 1.45),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
