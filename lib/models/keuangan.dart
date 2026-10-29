@@ -272,3 +272,37 @@ class RingkasanTagihan {
         sisa: _int(json?['sisa']),
       );
 }
+
+/// Nominal SPP khusus satu santri pada rentang bulan tertentu (nominal 0 = bebas SPP).
+class KeringananSpp {
+  const KeringananSpp({
+    required this.id,
+    required this.nominal,
+    required this.mulai,
+    this.sampai,
+    this.keterangan,
+    required this.berlaku,
+  });
+
+  final int id;
+  final int nominal;
+
+  /// Bulan "yyyy-MM"; sampai null = tanpa batas.
+  final String mulai;
+  final String? sampai;
+  final String? keterangan;
+
+  /// Berlaku bulan ini.
+  final bool berlaku;
+
+  bool get bebas => nominal == 0;
+
+  factory KeringananSpp.fromJson(Map<String, dynamic> json) => KeringananSpp(
+        id: json['id'] as int,
+        nominal: _int(json['nominal']),
+        mulai: json['mulai'] as String,
+        sampai: json['sampai'] as String?,
+        keterangan: json['keterangan'] as String?,
+        berlaku: json['berlaku'] as bool? ?? false,
+      );
+}

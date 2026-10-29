@@ -16,6 +16,7 @@ import '../../models/user.dart';
 import '../../shared/ui.dart';
 import '../../shared/widgets.dart';
 import '../auth/auth_controller.dart';
+import '../keuangan/keringanan_spp.dart';
 import '../komplek/komplek_pages.dart';
 import 'santri_repository.dart';
 
@@ -104,6 +105,10 @@ class SantriDetailPage extends ConsumerWidget {
                 ('Tanggal masuk', tanggal(s.tanggalMasuk)),
                 ('Tanggal keluar', s.tanggalKeluar == null ? null : tanggal(s.tanggalKeluar)),
               ]),
+              if (id != null && user.bisaLihatKeuangan) ...[
+                const SizedBox(height: 16),
+                KeringananSppCard(santriId: s.id, bisaKelola: user.bisaKelolaKeuangan),
+              ],
               if (s.lengkap) ...[
                 const SizedBox(height: 16),
                 _Dokumen(santri: s, bisaUnggah: user.bisaKelolaSantri),

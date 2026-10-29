@@ -11,11 +11,13 @@ import '../../core/format.dart';
 import '../../core/theme.dart';
 import '../../models/akses.dart';
 import '../../models/keuangan.dart';
+import '../../models/santri.dart';
 import '../../shared/paged_list.dart';
 import '../../shared/rupiah_input.dart';
 import '../../shared/ui.dart';
 import '../../shared/widgets.dart';
 import '../auth/auth_controller.dart';
+import '../santri/santri_repository.dart';
 import 'keuangan_repository.dart';
 import 'keuangan_widgets.dart';
 import 'tagihan_santri_page.dart';
@@ -639,6 +641,8 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
   JenisTagihan? _jenis;
   DateTime? _jatuhTempo;
   String? _sasaran; // null = putra & putri (admin)
+  bool _tertentu = false;
+  final _dipilih = <int, Santri>{};
   bool _loading = false;
 
   @override
@@ -654,14 +658,20 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
       return;
     }
     if (!_form.currentState!.validate()) return;
+    if (_tertentu && _dipilih.isEmpty) {
+      showPesan(context, 'Pilih minimal satu santri.', error: true);
+      return;
+    }
 
     final user = ref.read(authControllerProvider).value!;
-    final sasaran = user.isAdmin ? (_sasaran == null ? 'putra & putri' : (_sasaran == 'L' ? 'putra' : 'putri')) : user.genderLabel!.toLowerCase();
+    final sasaran = _tertentu
+        ? '${_dipilih.length} santri yang dipilih'
+        : 'semua santri aktif ${user.isAdmin ? (_sasaran == null ? 'putra & putri' : (_sasaran == 'L' ? 'putra' : 'putri')) : user.genderLabel!.toLowerCase()}';
     final ok = await konfirmasi(
       context,
       judul: 'Buat tagihan iuran?',
       isi: 'Tagihan "${_judul.text.trim().isEmpty ? _jenis!.nama : _judul.text.trim()}" sebesar ${rupiah(bacaRupiah(_nominal.text))} '
-          'akan dibuat untuk semua santri aktif $sasaran, dan setiap santri menerima notifikasi.',
+          'akan dibuat untuk $sasaran, dan setiap santri menerima notifikasi.',
       ya: 'Buat tagihan',
     );
     if (!ok) return;
@@ -673,7 +683,8 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
             judul: _judul.text.trim(),
             nominal: bacaRupiah(_nominal.text),
             jatuhTempo: _jatuhTempo == null ? null : isoTanggal(_jatuhTempo!),
-            gender: user.isAdmin ? _sasaran : null,
+            gender: user.isAdmin && !_tertentu ? _sasaran : null,
+            santriIds: _tertentu ? _dipilih.keys.toList() : null,
           );
       if (!mounted) return;
       showPesan(context, pesan);
@@ -682,6 +693,15 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
       if (mounted) showPesan(context, e.errors.values.firstOrNull?.first ?? e.message, error: true);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _pilihSantri() async {
+    final hasil = await bukaSheet<Map<int, Santri>>(context, judul: 'Pilih santri', child: _PilihSantriSheet(awal: _dipilih));
+    if (hasil != null) {
+      setState(() => _dipilih
+        ..clear()
+        ..addAll(hasil));
     }
   }
 
@@ -717,7 +737,11 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
               children: [
-                Text('Tagihan akan dibuat untuk semua santri aktif.', style: text.bodyMedium?.copyWith(color: AppColors.teks2)),
+                Text(
+                  'Tagihan dibuat untuk semua santri aktif, atau hanya santri yang dipilih '
+                  '(misalnya santri baru atau tunggakan sebelum aplikasi dipakai).',
+                  style: text.bodyMedium?.copyWith(color: AppColors.teks2),
+                ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<JenisTagihan>(
                   initialValue: _jenis,
@@ -739,23 +763,50 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
                 RupiahField(controller: _nominal, label: 'Nominal per santri'),
                 const SizedBox(height: 14),
                 TanggalField(label: 'Jatuh tempo (opsional)', value: _jatuhTempo, wajib: false, onChanged: (d) => setState(() => _jatuhTempo = d)),
-                if (user.isAdmin) ...[
-                  const SizedBox(height: 18),
-                  Text('Untuk santri', style: text.labelLarge),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final (v, label) in [(null, 'Putra & putri'), ('L', 'Putra saja'), ('P', 'Putri saja')])
-                        ChoiceChip(
-                          label: Text(label),
-                          selected: _sasaran == v,
-                          showCheckmark: false,
-                          selectedColor: AppColors.hijau,
-                          labelStyle: TextStyle(color: _sasaran == v ? Colors.white : AppColors.teks, fontWeight: FontWeight.w600),
-                          onSelected: (_) => setState(() => _sasaran = v),
+                const SizedBox(height: 18),
+                Text('Untuk santri', style: text.labelLarge),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final (tertentu, v, label) in <(bool, String?, String)>[
+                      if (user.isAdmin) ...[(false, null, 'Putra & putri'), (false, 'L', 'Putra saja'), (false, 'P', 'Putri saja')]
+                      else (false, null, 'Semua santri ${user.genderLabel!.toLowerCase()}'),
+                      (true, null, 'Santri tertentu'),
+                    ])
+                      ChoiceChip(
+                        label: Text(label),
+                        selected: _tertentu == tertentu && (tertentu || _sasaran == v),
+                        showCheckmark: false,
+                        selectedColor: AppColors.hijau,
+                        labelStyle: TextStyle(
+                          color: _tertentu == tertentu && (tertentu || _sasaran == v) ? Colors.white : AppColors.teks,
+                          fontWeight: FontWeight.w600,
                         ),
-                    ],
+                        onSelected: (_) => setState(() {
+                          _tertentu = tertentu;
+                          if (!tertentu) _sasaran = v;
+                        }),
+                      ),
+                  ],
+                ),
+                if (_tertentu) ...[
+                  const SizedBox(height: 12),
+                  if (_dipilih.isNotEmpty)
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final s in _dipilih.values)
+                          InputChip(label: Text(s.namaLengkap), onDeleted: () => setState(() => _dipilih.remove(s.id))),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _pilihSantri,
+                    icon: const Icon(Icons.person_search_rounded),
+                    label: Text(_dipilih.isEmpty ? 'Pilih santri' : 'Ubah pilihan (${_dipilih.length})'),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -765,6 +816,86 @@ class _BuatIuranPageState extends ConsumerState<BuatIuranPage> {
           );
         },
       ),
+    );
+  }
+}
+
+/// Lembar pencarian santri aktif dengan pilihan ganda. Mengembalikan santri yang dipilih.
+class _PilihSantriSheet extends ConsumerStatefulWidget {
+  const _PilihSantriSheet({required this.awal});
+
+  final Map<int, Santri> awal;
+
+  @override
+  ConsumerState<_PilihSantriSheet> createState() => _PilihSantriSheetState();
+}
+
+class _PilihSantriSheetState extends ConsumerState<_PilihSantriSheet> {
+  late final _dipilih = Map<int, Santri>.of(widget.awal);
+  Timer? _jeda;
+  late Future<Halaman<Santri>> _hasil = _cari('');
+
+  Future<Halaman<Santri>> _cari(String kata) => ref.read(santriRepositoryProvider).daftar(search: kata);
+
+  @override
+  void dispose() {
+    _jeda?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Cari nama atau NIS', prefixIcon: Icon(Icons.search_rounded)),
+          onChanged: (v) {
+            _jeda?.cancel();
+            _jeda = Timer(const Duration(milliseconds: 450), () => setState(() => _hasil = _cari(v.trim())));
+          },
+        ),
+        const SizedBox(height: 8),
+        FutureBuilder<Halaman<Santri>>(
+          future: _hasil,
+          builder: (context, snap) {
+            if (snap.hasError) return Text('${snap.error}', style: const TextStyle(color: AppColors.merah));
+            if (!snap.hasData) return const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()));
+            final halaman = snap.data!;
+            if (halaman.items.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Santri tidak ditemukan.', textAlign: TextAlign.center, style: text.bodyMedium?.copyWith(color: AppColors.teks2)),
+              );
+            }
+            return Column(
+              children: [
+                for (final s in halaman.items)
+                  CheckboxListTile(
+                    value: _dipilih.containsKey(s.id),
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    activeColor: AppColors.hijau,
+                    title: Text(s.namaLengkap, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text('NIS ${s.nis}'),
+                    onChanged: (v) => setState(() => v == true ? _dipilih[s.id] = s : _dipilih.remove(s.id)),
+                  ),
+                if (halaman.adaLagi)
+                  Text('Ketik nama untuk mencari santri lainnya.', style: text.labelSmall?.copyWith(color: AppColors.teks2)),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        FilledButton(
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          onPressed: () => Navigator.pop(context, _dipilih),
+          child: Text(_dipilih.isEmpty ? 'Selesai' : 'Pilih ${_dipilih.length} santri'),
+        ),
+      ],
     );
   }
 }
