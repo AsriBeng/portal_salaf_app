@@ -16,7 +16,7 @@ class Pengumuman {
   final String judul;
   final String isi;
 
-  /// 'semua' / 'putra' / 'putri'
+  /// 'semua' / 'putra' / 'putri' / 'alumni' (santri lulus atau keluar)
   final String target;
   final String publishedAt;
   final String? lampiranUrl;
@@ -28,6 +28,7 @@ class Pengumuman {
   String get targetLabel => switch (target) {
         'putra' => 'Santri putra',
         'putri' => 'Santri putri',
+        'alumni' => 'Alumni',
         _ => 'Semua',
       };
 

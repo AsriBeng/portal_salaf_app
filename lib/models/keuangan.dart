@@ -273,18 +273,22 @@ class RingkasanTagihan {
       );
 }
 
-/// Nominal SPP khusus satu santri pada rentang bulan tertentu (nominal 0 = bebas SPP).
-class KeringananSpp {
-  const KeringananSpp({
+/// SPP khusus (potongan / bebas SPP) untuk sekelompok santri pada rentang bulan tertentu (nominal 0 = bebas SPP).
+class SppKhusus {
+  const SppKhusus({
     required this.id,
+    required this.nama,
     required this.nominal,
     required this.mulai,
     this.sampai,
     this.keterangan,
     required this.berlaku,
+    required this.bisaKelola,
+    required this.santri,
   });
 
   final int id;
+  final String nama;
   final int nominal;
 
   /// Bulan "yyyy-MM"; sampai null = tanpa batas.
@@ -295,14 +299,21 @@ class KeringananSpp {
   /// Berlaku bulan ini.
   final bool berlaku;
 
+  /// false jika berisi santri di luar wewenang pengguna (hanya admin yang bisa mengubah).
+  final bool bisaKelola;
+  final List<SantriSingkat> santri;
+
   bool get bebas => nominal == 0;
 
-  factory KeringananSpp.fromJson(Map<String, dynamic> json) => KeringananSpp(
+  factory SppKhusus.fromJson(Map<String, dynamic> json) => SppKhusus(
         id: json['id'] as int,
+        nama: json['nama'] as String,
         nominal: _int(json['nominal']),
         mulai: json['mulai'] as String,
         sampai: json['sampai'] as String?,
         keterangan: json['keterangan'] as String?,
         berlaku: json['berlaku'] as bool? ?? false,
+        bisaKelola: json['bisa_kelola'] as bool? ?? true,
+        santri: [for (final e in json['santri'] as List? ?? const []) SantriSingkat.fromJson(e as Map<String, dynamic>)],
       );
 }

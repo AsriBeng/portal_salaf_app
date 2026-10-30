@@ -29,6 +29,7 @@ class TargetPill extends StatelessWidget {
   Widget build(BuildContext context) => switch (target) {
         'putra' => const Pill(label: 'Putra', color: AppColors.biru, background: AppColors.biruMuda),
         'putri' => const Pill(label: 'Putri', color: Color(0xFFBE185D), background: Color(0xFFFCE7F3)),
+        'alumni' => const Pill(label: 'Alumni', color: Color(0xFF6D28D9), background: Color(0xFFEDE9FE)),
         _ => const Pill(label: 'Semua', color: Color(0xFF8A6D00), background: AppColors.emasMuda),
       };
 }
@@ -379,9 +380,10 @@ class _PengumumanFormPageState extends ConsumerState<PengumumanFormPage> {
 
     if (_baru) {
       final sasaran = switch (_target) {
-        'putra' => 'semua santri putra dan pengurus putra',
-        'putri' => 'semua santri putri dan pengurus putri',
-        _ => 'semua santri dan pengurus',
+        'putra' => 'santri putra aktif dan pengurus putra',
+        'putri' => 'santri putri aktif dan pengurus putri',
+        'alumni' => 'alumni (santri yang sudah lulus atau keluar)',
+        _ => 'semua santri (termasuk alumni) dan pengurus',
       };
       final ok = await konfirmasi(
         context,
@@ -419,6 +421,7 @@ class _PengumumanFormPageState extends ConsumerState<PengumumanFormPage> {
         ('semua', 'Semua'),
         if (user.isAdmin || user.gender == 'L') ('putra', 'Putra'),
         if (user.isAdmin || user.gender == 'P') ('putri', 'Putri'),
+        ('alumni', 'Alumni'),
       ];
 
   @override

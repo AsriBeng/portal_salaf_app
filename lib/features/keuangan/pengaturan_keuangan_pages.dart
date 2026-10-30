@@ -12,6 +12,7 @@ import '../../shared/widgets.dart';
 import '../auth/auth_controller.dart';
 import 'keuangan_repository.dart';
 import 'keuangan_widgets.dart';
+import 'spp_khusus.dart';
 
 // ---------------------------------------------------------------------------
 // Jenis tagihan (SPP & iuran)
@@ -86,6 +87,8 @@ class JenisTagihanPage extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
             ],
+            const SizedBox(height: 8),
+            SppKhususSection(bisaKelola: user.bisaKelolaKeuangan),
           ],
         ),
       ),

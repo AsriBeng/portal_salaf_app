@@ -78,28 +78,29 @@ class KeuanganRepository {
   Future<String> generateSpp({String? periode}) async =>
       (await _api.post('/tagihan/generate-spp', data: {'periode': ?periode}))['message'] as String;
 
-  // --- Keringanan SPP --------------------------------------------------------
+  // --- SPP khusus -------------------------------------------------------------
 
-  Future<List<KeringananSpp>> keringananSpp(int santriId) async {
-    final res = await _api.get('/santri/$santriId/keringanan-spp');
-    return (res['data'] as List).map((e) => KeringananSpp.fromJson(e as Map<String, dynamic>)).toList();
+  Future<List<SppKhusus>> sppKhusus() async {
+    final res = await _api.get('/spp-khusus');
+    return (res['data'] as List).map((e) => SppKhusus.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  /// Simpan keringanan baru (id null) atau ubah yang ada. Mengembalikan pesan dari server.
-  Future<String> simpanKeringananSpp({
+  /// Simpan SPP khusus baru (id null) atau ubah yang ada. Mengembalikan pesan dari server.
+  Future<String> simpanSppKhusus({
     int? id,
-    required int santriId,
+    required String nama,
     required int nominal,
     required String mulai,
     String? sampai,
     String? keterangan,
+    required List<int> santriIds,
   }) async {
-    final data = {'nominal': nominal, 'mulai': mulai, 'sampai': sampai, 'keterangan': keterangan};
-    final res = id == null ? await _api.post('/santri/$santriId/keringanan-spp', data: data) : await _api.put('/keringanan-spp/$id', data: data);
+    final data = {'nama': nama, 'nominal': nominal, 'mulai': mulai, 'sampai': sampai, 'keterangan': keterangan, 'santri_ids': santriIds};
+    final res = id == null ? await _api.post('/spp-khusus', data: data) : await _api.put('/spp-khusus/$id', data: data);
     return res['message'] as String;
   }
 
-  Future<String> hapusKeringananSpp(int id) async => (await _api.delete('/keringanan-spp/$id'))['message'] as String;
+  Future<String> hapusSppKhusus(int id) async => (await _api.delete('/spp-khusus/$id'))['message'] as String;
 
   Future<void> ubahTagihan(int id, {required String judul, required int nominal, String? jatuhTempo}) =>
       _api.put('/tagihan/$id', data: {'judul': judul, 'nominal': nominal, 'jatuh_tempo': jatuhTempo});
@@ -226,8 +227,8 @@ final tagihanDetailProvider = FutureProvider.autoDispose.family<Tagihan, int>(
   (ref, id) => ref.watch(keuanganRepositoryProvider).detailTagihan(id),
 );
 
-final keringananSppProvider = FutureProvider.autoDispose.family<List<KeringananSpp>, int>(
-  (ref, santriId) => ref.watch(keuanganRepositoryProvider).keringananSpp(santriId),
+final sppKhususProvider = FutureProvider.autoDispose(
+  (ref) => ref.watch(keuanganRepositoryProvider).sppKhusus(),
 );
 
 final pembayaranDetailProvider = FutureProvider.autoDispose.family<Pembayaran, int>(
