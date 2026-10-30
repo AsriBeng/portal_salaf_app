@@ -77,13 +77,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
     const tagihanSantri = _Tab('Tagihan', Icons.receipt_long_outlined, Icons.receipt_long_rounded, TagihanSantriPage());
 
-    return switch (role) {
-      // Urutan harus sama dengan TabSantri
-      Role.santri => [beranda, kartu, tagihanSantri, profil],
-      Role.sekretaris => [beranda, santri, kamar, profil],
-      Role.bendahara => [beranda, keuangan, santri, profil],
-      Role.admin || Role.ketua => [beranda, santri, kamar, keuangan, profil],
-    };
+    return [
+      for (final t in urutanTab(role))
+        switch (t) {
+          MenuTab.beranda => beranda,
+          MenuTab.santri => santri,
+          MenuTab.kamar => kamar,
+          MenuTab.keuangan => keuangan,
+          MenuTab.kartu => kartu,
+          MenuTab.tagihan => tagihanSantri,
+          MenuTab.profil => profil,
+        },
+    ];
   }
 
   @override

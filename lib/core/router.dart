@@ -6,6 +6,7 @@ import '../features/admin/pengaturan_page.dart';
 import '../features/admin/pengurus_pages.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/login_page.dart';
+import '../features/buku_saku/buku_saku_page.dart';
 import '../features/home/home_shell.dart';
 import '../features/kartu/kartu_page.dart';
 import '../features/keuangan/kas_pages.dart';
@@ -75,6 +76,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Pengumuman & notifikasi
       _halaman(path: '/notifikasi', builder: (_, _) => const NotifikasiPage()),
+      _halaman(path: '/buku-saku', builder: (_, _) => const BukuSakuPage()),
       _halaman(path: '/pengumuman', builder: (_, _) => const PengumumanListPage()),
       _halaman(path: '/pengumuman-baru', builder: (_, _) => const PengumumanFormPage()),
       _halaman(path: '/pengumuman/:id', builder: (_, s) => PengumumanDetailPage(id: id(s))),

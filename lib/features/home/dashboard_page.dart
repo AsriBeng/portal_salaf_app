@@ -44,7 +44,7 @@ class DashboardPage extends ConsumerWidget {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   sliver: SliverList.list(
-                    children: user.isSantri ? _isiSantri(context, ref, data) : _isiPengurus(context, user, data),
+                    children: user.isSantri ? _isiSantri(context, ref, data) : _isiPengurus(context, ref, user, data),
                   ),
                 ),
               ],
@@ -56,7 +56,8 @@ class DashboardPage extends ConsumerWidget {
   }
 
   List<Widget> _isiSantri(BuildContext context, WidgetRef ref, Map<String, dynamic> data) {
-    void keTagihan() => ref.read(tabAktifProvider.notifier).pilih(TabSantri.tagihan);
+    void keTab(int tab) => ref.read(tabAktifProvider.notifier).pilih(tab);
+    void keTagihan() => keTab(TabSantri.tagihan);
 
     final tagihan = data['tagihan'] as Map<String, dynamic>;
     final daftar = (tagihan['daftar'] as List).cast<Map<String, dynamic>>();
@@ -85,11 +86,40 @@ class DashboardPage extends ConsumerWidget {
         ),
       ],
       const SizedBox(height: 16),
+      _MenuPintas(
+        items: [
+          _ItemMenu(Icons.menu_book_rounded, 'Buku Saku', const Color(0xFF8A6D00), () => context.push('/buku-saku')),
+          _ItemMenu(Icons.badge_rounded, 'ID Card', AppColors.hijau, () => keTab(TabSantri.kartu)),
+          _ItemMenu(Icons.receipt_long_rounded, 'Tagihan', AppColors.oranye, keTagihan),
+          _ItemMenu(Icons.person_rounded, 'Profil', AppColors.biru, () => keTab(TabSantri.profil)),
+        ],
+      ),
+      const SizedBox(height: 16),
       _PengumumanSection(items: (data['pengumuman_terbaru'] as List).cast<Map<String, dynamic>>()),
     ];
   }
 
-  List<Widget> _isiPengurus(BuildContext context, User user, Map<String, dynamic> data) {
+  /// Tombol pintas ke tab dan halaman yang boleh dibuka pengurus sesuai perannya.
+  List<_ItemMenu> _menuPengurus(BuildContext context, WidgetRef ref, User user) {
+    final tabs = urutanTab(user.role);
+    _ItemMenu? tab(MenuTab t, IconData icon, String label, Color warna) =>
+        tabs.contains(t) ? _ItemMenu(icon, label, warna, () => ref.read(tabAktifProvider.notifier).pilih(tabs.indexOf(t))) : null;
+
+    return [
+      ?tab(MenuTab.santri, Icons.groups_rounded, 'Santri', AppColors.hijau),
+      ?tab(MenuTab.kamar, Icons.meeting_room_rounded, 'Kamar', AppColors.oranye),
+      ?tab(MenuTab.keuangan, Icons.account_balance_wallet_rounded, 'Keuangan', AppColors.biru),
+      _ItemMenu(Icons.campaign_rounded, 'Pengumuman', const Color(0xFF6D28D9), () => context.push('/pengumuman')),
+      if (user.isAdmin) ...[
+        _ItemMenu(Icons.manage_accounts_rounded, 'Pengurus', AppColors.hijau, () => context.push('/pengurus')),
+        _ItemMenu(Icons.settings_rounded, 'Pengaturan', AppColors.teks2, () => context.push('/pengaturan')),
+      ],
+      _ItemMenu(Icons.menu_book_rounded, 'Buku Saku', const Color(0xFF8A6D00), () => context.push('/buku-saku')),
+      ?tab(MenuTab.profil, Icons.person_rounded, 'Profil', AppColors.biru),
+    ];
+  }
+
+  List<Widget> _isiPengurus(BuildContext context, WidgetRef ref, User user, Map<String, dynamic> data) {
     final santri = data['santri'] as Map<String, dynamic>;
     final kamar = data['kamar'] as Map<String, dynamic>?;
     final keuangan = data['keuangan'] as Map<String, dynamic>?;
@@ -130,6 +160,9 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
+      const SizedBox(height: 20),
+      _JudulBagian('Menu'),
+      _MenuPintas(items: _menuPengurus(context, ref, user)),
       if (kamar != null) ...[const SizedBox(height: 20), _JudulBagian('Kamar'), _KamarCard(data: kamar)],
       if (keuangan != null) ...[
         const SizedBox(height: 20),
@@ -275,6 +308,69 @@ class _NotifButton extends ConsumerWidget {
       icon: LencanaNotif(
         jumlahAwal: jumlah,
         child: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _ItemMenu {
+  const _ItemMenu(this.icon, this.label, this.warna, this.onTap);
+
+  final IconData icon;
+  final String label;
+  final Color warna;
+  final VoidCallback onTap;
+}
+
+/// Deretan tombol pintas di beranda, 4 per baris.
+class _MenuPintas extends StatelessWidget {
+  const _MenuPintas({required this.items});
+
+  final List<_ItemMenu> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        child: GridView.count(
+          crossAxisCount: 4,
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisExtent: 92,
+          children: [
+            for (final m in items)
+              InkWell(
+                onTap: m.onTap,
+                borderRadius: BorderRadius.circular(14),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(color: m.warna.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
+                        child: Icon(m.icon, color: m.warna),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        m.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.labelSmall?.copyWith(fontWeight: FontWeight.w700, height: 1.2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
