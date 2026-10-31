@@ -8,6 +8,7 @@ import '../../core/theme.dart';
 import '../../models/user.dart';
 import '../../shared/widgets.dart';
 import '../auth/auth_controller.dart';
+import '../buku_saku/waktu_sholat_page.dart';
 import '../notifikasi/notifikasi_page.dart';
 import 'dashboard_provider.dart';
 import 'tab_provider.dart';
@@ -65,6 +66,8 @@ class DashboardPage extends ConsumerWidget {
     final jumlah = tagihan['jumlah_belum_lunas'] as int? ?? 0;
 
     return [
+      const HitungMundurSholat(),
+      const SizedBox(height: 16),
       _TagihanSantriCard(total: tagihan['total_belum_lunas'] as num? ?? 0, jumlah: jumlah, menunggu: menunggu, onTap: keTagihan),
       if (daftar.isNotEmpty) ...[
         const SizedBox(height: 16),
@@ -125,6 +128,8 @@ class DashboardPage extends ConsumerWidget {
     final keuangan = data['keuangan'] as Map<String, dynamic>?;
 
     return [
+      const HitungMundurSholat(),
+      const SizedBox(height: 20),
       _JudulBagian('Santri'),
       GridView.count(
         crossAxisCount: 2,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme.dart';
+import 'waktu_sholat_page.dart';
 
-/// Buku Saku Santri. Isinya belum tersedia, sementara menampilkan keterangan segera rilis.
+/// Buku Saku Santri: kumpulan menu ibadah harian. Isi lainnya menyusul.
 class BukuSakuPage extends StatelessWidget {
   const BukuSakuPage({super.key});
 
@@ -12,39 +14,94 @@ class BukuSakuPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Buku Saku Santri')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+        children: [
+          const HitungMundurSholat(),
+          const SizedBox(height: 16),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _MenuBesar(
+                    icon: Icons.menu_book_rounded,
+                    judul: 'Al-Qur\'an',
+                    keterangan: 'Mushaf pojok & terjemah',
+                    warna: AppColors.hijau,
+                    onTap: () => context.push('/al-quran'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MenuBesar(
+                    icon: Icons.access_time_filled_rounded,
+                    judul: 'Waktu Sholat',
+                    keterangan: 'Jadwal sesuai lokasi',
+                    warna: AppColors.biru,
+                    onTap: () => context.push('/waktu-sholat'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: AppColors.emasMuda, borderRadius: BorderRadius.circular(14)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.auto_stories_outlined, size: 20, color: Color(0xFF8A6D00)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Buku Saku Santri akan segera lengkap. Tata tertib, jadwal kegiatan, dan panduan pondok '
+                    'akan ditambahkan di halaman ini.',
+                    style: text.bodySmall?.copyWith(color: const Color(0xFF6B5500), height: 1.45),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuBesar extends StatelessWidget {
+  const _MenuBesar({required this.icon, required this.judul, required this.keterangan, required this.warna, required this.onTap});
+
+  final IconData icon;
+  final String judul;
+  final String keterangan;
+  final Color warna;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(color: AppColors.hijauMuda, borderRadius: BorderRadius.circular(28)),
-                child: const Icon(Icons.menu_book_rounded, size: 48, color: AppColors.hijau),
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(color: warna.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
+                child: Icon(icon, color: warna, size: 28),
               ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(color: AppColors.emasMuda, borderRadius: BorderRadius.circular(999)),
-                child: Text(
-                  'Segera hadir',
-                  style: text.labelMedium?.copyWith(color: const Color(0xFF8A6D00), fontWeight: FontWeight.w800),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Buku Saku Akan Segera Rilis',
-                textAlign: TextAlign.center,
-                style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Buku Saku Santri sedang disiapkan dan akan tersedia di aplikasi ini dalam waktu dekat.',
-                textAlign: TextAlign.center,
-                style: text.bodyMedium?.copyWith(color: AppColors.teks2, height: 1.5),
-              ),
+              const SizedBox(height: 14),
+              Text(judul, style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 2),
+              Text(keterangan, style: text.bodySmall?.copyWith(color: AppColors.teks2)),
             ],
           ),
         ),

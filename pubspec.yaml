@@ -30,6 +30,11 @@ dependencies:
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
   package_info_plus: ^10.2.2
+  adhan: ^2.0.0+1
+  geolocator: ^14.0.1
+  geocoding: ^5.0.1
+  shared_preferences: ^2.5.6
+  scrollable_positioned_list: ^0.3.8
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +47,12 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/quran/
+  fonts:
+    # Huruf mushaf standar Indonesia dari Lajnah Pentashihan Mushaf Al-Qur'an (Kemenag)
+    - family: LPMQ
+      fonts:
+        - asset: assets/fonts/LPMQ-IsepMisbah.ttf
 
 # Ikon aplikasi: dart run flutter_launcher_icons
 flutter_launcher_icons:
