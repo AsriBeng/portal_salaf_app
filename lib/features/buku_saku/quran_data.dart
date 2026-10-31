@@ -27,6 +27,8 @@ class Surat {
 
   /// Al-Fatihah (basmalah = ayat 1) dan At-Taubah tidak diberi basmalah terpisah.
   bool get pakaiBasmalah => nomor != 1 && nomor != 9;
+
+  String get golongan => tempat == 'Mekah' ? 'Makkiyah' : 'Madaniyah';
 }
 
 /// Satu ayat: nomor surat & ayat, dan urutannya dari 0 sampai 6235.
