@@ -257,50 +257,9 @@ class _UkuranHuruf extends ConsumerWidget {
   }
 }
 
-const _coklat = Color(0xFF8A5A3B);
 const _bingkai = Color(0xFF4FB592);
 
-/// Nomor akhir ayat: lingkaran bergaris ganda berisi angka Arab, seperti di mushaf cetak.
-class _NomorAyat extends StatelessWidget {
-  const _NomorAyat({required this.nomor, required this.ukuran});
-
-  final int nomor;
-  final double ukuran;
-
-  @override
-  Widget build(BuildContext context) {
-    final d = ukuran * 1.25;
-    return Container(
-      width: d,
-      height: d,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: _coklat, width: 1.4),
-      ),
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: _coklat.withValues(alpha: 0.7), width: 1.6),
-        ),
-        child: FittedBox(
-          child: Padding(
-            padding: const EdgeInsets.all(3),
-            child: Text(
-              angkaArab(nomor),
-              style: TextStyle(fontFamily: fontQuran, fontSize: ukuran * 0.5, height: 1.2, color: _coklat, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Bingkai judul surat (golongan, nama surat, jumlah ayat) beserta basmalah, di awal surat.
+/// Bingkai judul surat di awal surat: golongan, nama surat (Arab & Latin), jumlah ayat, lalu basmalah.
 class _KepalaSurat extends StatelessWidget {
   const _KepalaSurat({required this.quran, required this.surat, required this.ukuran});
 
@@ -332,18 +291,28 @@ class _KepalaSurat extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(child: Text(surat.golongan, style: keterangan)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFC9A27E), width: 1.4),
-                  ),
-                  child: Text(
-                    'سُوْرَةُ ${surat.nama}',
-                    textDirection: TextDirection.rtl,
-                    style: const TextStyle(fontFamily: fontQuran, fontSize: 20, height: 1.6, color: AppColors.teks),
-                  ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: const Color(0xFFC9A27E), width: 1.4),
+                      ),
+                      child: Text(
+                        'سُوْرَةُ ${surat.nama}',
+                        textDirection: TextDirection.rtl,
+                        style: const TextStyle(fontFamily: fontQuran, fontSize: 20, height: 1.6, color: AppColors.teks),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      surat.latin,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.hijauTua),
+                    ),
+                  ],
                 ),
                 Expanded(
                   child: Text('${surat.jumlahAyat} Ayat', textAlign: TextAlign.right, style: keterangan),
@@ -353,11 +322,14 @@ class _KepalaSurat extends StatelessWidget {
           ),
         ),
         if (surat.pakaiBasmalah)
-          Text(
-            quran.basmalah,
-            textAlign: TextAlign.center,
-            textDirection: TextDirection.rtl,
-            style: TextStyle(fontFamily: fontQuran, fontSize: ukuran, height: 2.0),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              quran.basmalah,
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+              style: TextStyle(fontFamily: fontQuran, fontSize: ukuran),
+            ),
           ),
       ],
     );
@@ -455,7 +427,7 @@ class _HalamanMushaf extends StatelessWidget {
       isi.add(
         Text.rich(
           TextSpan(children: paragraf),
-          textAlign: TextAlign.center,
+          textAlign: TextAlign.justify,
           textDirection: TextDirection.rtl,
           style: gaya,
         ),
@@ -469,37 +441,30 @@ class _HalamanMushaf extends StatelessWidget {
         tutupParagraf();
         isi.add(_KepalaSurat(quran: quran, surat: quran.surat[a.surat - 1], ukuran: ukuran));
       }
-      paragraf.add(TextSpan(text: quran.arab(a.surat, a.ayat)));
+      paragraf.add(TextSpan(text: '${quran.arab(a.surat, a.ayat)} '));
       paragraf.add(
-        WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: _NomorAyat(nomor: a.ayat, ukuran: ukuran),
+        TextSpan(
+          text: '﴿${angkaArab(a.ayat)}﴾ ',
+          style: const TextStyle(color: AppColors.hijau),
         ),
       );
-      paragraf.add(const TextSpan(text: ' '));
     }
     tutupParagraf();
 
-    // Halaman pendek (misalnya Al-Fatihah) diletakkan di tengah layar seperti mushaf cetak.
-    return LayoutBuilder(
-      builder: (context, ukuranLayar) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 8, 14, 16),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: ukuranLayar.maxHeight - 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ...isi,
-              const SizedBox(height: 12),
-              Text(
-                '$halaman',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12, color: AppColors.teks2),
-              ),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ...isi,
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              angkaArab(halaman),
+              style: const TextStyle(fontFamily: fontQuran, fontSize: 18, color: AppColors.teks2),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -592,31 +557,27 @@ class _TerjemahPageState extends ConsumerState<TerjemahPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              if (widget.juz != null)
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(color: AppColors.hijauMuda, borderRadius: BorderRadius.circular(8)),
                                     child: Text(
-                                      '${q.surat[a.surat - 1].latin} ${a.surat}:${a.ayat}',
+                                      widget.juz != null ? '${a.surat}:${a.ayat}' : '${a.ayat}',
                                       style: text.labelSmall?.copyWith(color: AppColors.hijau, fontWeight: FontWeight.w800),
                                     ),
                                   ),
-                                ),
-                              Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(text: q.arab(a.surat, a.ayat)),
-                                    WidgetSpan(
-                                      alignment: PlaceholderAlignment.middle,
-                                      child: _NomorAyat(nomor: a.ayat, ukuran: ukuran),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      q.arab(a.surat, a.ayat),
+                                      textAlign: TextAlign.right,
+                                      textDirection: TextDirection.rtl,
+                                      style: TextStyle(fontFamily: fontQuran, fontSize: ukuran, height: 2.0),
                                     ),
-                                  ],
-                                ),
-                                textAlign: TextAlign.right,
-                                textDirection: TextDirection.rtl,
-                                style: TextStyle(fontFamily: fontQuran, fontSize: ukuran, height: 2.0, color: AppColors.teks),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 8),
                               Text(arti[a.surat - 1][a.ayat - 1], style: text.bodyMedium?.copyWith(height: 1.5)),
