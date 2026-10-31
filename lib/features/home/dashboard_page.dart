@@ -68,6 +68,15 @@ class DashboardPage extends ConsumerWidget {
     return [
       const HitungMundurSholat(),
       const SizedBox(height: 16),
+      _MenuPintas(
+        items: [
+          _ItemMenu(Icons.menu_book_rounded, 'Buku Saku', const Color(0xFF8A6D00), () => context.push('/buku-saku')),
+          _ItemMenu(Icons.badge_rounded, 'ID Card', AppColors.hijau, () => keTab(TabSantri.kartu)),
+          _ItemMenu(Icons.receipt_long_rounded, 'Tagihan', AppColors.oranye, keTagihan),
+          _ItemMenu(Icons.person_rounded, 'Profil', AppColors.biru, () => keTab(TabSantri.profil)),
+        ],
+      ),
+      const SizedBox(height: 16),
       _TagihanSantriCard(total: tagihan['total_belum_lunas'] as num? ?? 0, jumlah: jumlah, menunggu: menunggu, onTap: keTagihan),
       if (daftar.isNotEmpty) ...[
         const SizedBox(height: 16),
@@ -89,15 +98,6 @@ class DashboardPage extends ConsumerWidget {
         ),
       ],
       const SizedBox(height: 16),
-      _MenuPintas(
-        items: [
-          _ItemMenu(Icons.menu_book_rounded, 'Buku Saku', const Color(0xFF8A6D00), () => context.push('/buku-saku')),
-          _ItemMenu(Icons.badge_rounded, 'ID Card', AppColors.hijau, () => keTab(TabSantri.kartu)),
-          _ItemMenu(Icons.receipt_long_rounded, 'Tagihan', AppColors.oranye, keTagihan),
-          _ItemMenu(Icons.person_rounded, 'Profil', AppColors.biru, () => keTab(TabSantri.profil)),
-        ],
-      ),
-      const SizedBox(height: 16),
       _PengumumanSection(items: (data['pengumuman_terbaru'] as List).cast<Map<String, dynamic>>()),
     ];
   }
@@ -109,6 +109,7 @@ class DashboardPage extends ConsumerWidget {
         tabs.contains(t) ? _ItemMenu(icon, label, warna, () => ref.read(tabAktifProvider.notifier).pilih(tabs.indexOf(t))) : null;
 
     return [
+      _ItemMenu(Icons.menu_book_rounded, 'Buku Saku', const Color(0xFF8A6D00), () => context.push('/buku-saku')),
       ?tab(MenuTab.santri, Icons.groups_rounded, 'Santri', AppColors.hijau),
       ?tab(MenuTab.kamar, Icons.meeting_room_rounded, 'Kamar', AppColors.oranye),
       ?tab(MenuTab.keuangan, Icons.account_balance_wallet_rounded, 'Keuangan', AppColors.biru),
@@ -117,7 +118,6 @@ class DashboardPage extends ConsumerWidget {
         _ItemMenu(Icons.manage_accounts_rounded, 'Pengurus', AppColors.hijau, () => context.push('/pengurus')),
         _ItemMenu(Icons.settings_rounded, 'Pengaturan', AppColors.teks2, () => context.push('/pengaturan')),
       ],
-      _ItemMenu(Icons.menu_book_rounded, 'Buku Saku', const Color(0xFF8A6D00), () => context.push('/buku-saku')),
       ?tab(MenuTab.profil, Icons.person_rounded, 'Profil', AppColors.biru),
     ];
   }
@@ -129,6 +129,9 @@ class DashboardPage extends ConsumerWidget {
 
     return [
       const HitungMundurSholat(),
+      const SizedBox(height: 20),
+      _JudulBagian('Menu'),
+      _MenuPintas(items: _menuPengurus(context, ref, user)),
       const SizedBox(height: 20),
       _JudulBagian('Santri'),
       GridView.count(
@@ -165,9 +168,6 @@ class DashboardPage extends ConsumerWidget {
           ),
         ],
       ),
-      const SizedBox(height: 20),
-      _JudulBagian('Menu'),
-      _MenuPintas(items: _menuPengurus(context, ref, user)),
       if (kamar != null) ...[const SizedBox(height: 20), _JudulBagian('Kamar'), _KamarCard(data: kamar)],
       if (keuangan != null) ...[
         const SizedBox(height: 20),
