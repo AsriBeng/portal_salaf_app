@@ -290,29 +290,32 @@ class _KepalaSurat extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Expanded(child: Text(surat.golongan, style: keterangan)),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFC9A27E), width: 1.4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        surat.latin,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.hijauTua),
                       ),
-                      child: Text(
-                        'سُوْرَةُ ${surat.nama}',
-                        textDirection: TextDirection.rtl,
-                        style: const TextStyle(fontFamily: fontQuran, fontSize: 20, height: 1.6, color: AppColors.teks),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      surat.latin,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.hijauTua),
-                    ),
-                  ],
+                      Text(surat.golongan, style: const TextStyle(fontSize: 11, color: AppColors.teks2)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: const Color(0xFFC9A27E), width: 1.4),
+                  ),
+                  child: Text(
+                    'سُوْرَةُ ${surat.nama}',
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(fontFamily: fontQuran, fontSize: 20, height: 1.6, color: AppColors.teks),
+                  ),
                 ),
                 Expanded(
                   child: Text('${surat.jumlahAyat} Ayat', textAlign: TextAlign.right, style: keterangan),
